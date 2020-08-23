@@ -1,0 +1,14 @@
+note over selain
+Käyttäjä kirjoittaa tekstin
+"kebab is good" ja painaa "Save"
+end note
+
+note over selain
+Selain suorittaa js-koodin, joka 
+tallentaa noten, renderöi sivun 
+uudelleen, ja lähettää lomakkeen 
+sisällön palvelimelle
+end note
+
+selain->palvelin: HTTP POST https://fullstack-exampleapp.herokuapp.com/new_note_spa\n{content: "kebab is good", date: "2020-08-23T07:53:24.160Z"}
+palvelin-->selain: 201 Created\n{"message":"note created"}
