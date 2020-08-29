@@ -92,10 +92,10 @@ const App = () => {
       <Button handleClick={incrementNeutral} text="neutral" />
       <Button handleClick={incrementBad} text="bad" />
 
-      <Header text="Statistics:" />
+      <Header text="Statistics (lines):" />
       <Statistics good={good} neutral={neutral} bad={bad} />
 
-      <Header text="Statistics table:" />
+      <Header text="Statistics (HTML table):" />
       <StatsTable good={good} neutral={neutral} bad={bad} />
     </>
   )
