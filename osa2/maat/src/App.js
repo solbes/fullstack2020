@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios'
 //import './App.css';
 
-//<img src={logo} className="App-logo" alt="logo" />
-
 const Filter = ({value, onChange}) => (
   <div>
     Find countries: <input value={value} onChange={onChange} />
@@ -25,17 +23,17 @@ const OneCountry = ({country}) => (
   </div>
 )
 
-const Countries = ({countries, filter}) => {
+const Countries = ({countries, filter, onClick}) => {
   
   const countries_filt = countries.filter(
     c => c.name.toLowerCase().includes(filter.toLowerCase())
-  )
+  )  
 
   if ( countries_filt.length <= 10 & countries_filt.length > 1 ) {
     return (
       <div>
         {countries_filt.map(
-          c => <p key={c.name}>{c.name}</p>
+          c => <p key={c.name}>{c.name}<button id={c.name} onClick={onClick}>show</button></p>
         )}
       </div>
     )
@@ -55,6 +53,7 @@ const App = () => {
   const [countries, setCountries] = useState([])
 
   const handleFilterChange = (event) => setFilter(event.target.value)
+  const handleButtonClick = (event) => setFilter(event.target.id)
 
   useEffect(() => {
     axios
@@ -65,7 +64,7 @@ const App = () => {
   return (
     <div>
       <Filter value={filter} onChange={handleFilterChange}/>
-      <Countries countries={countries} filter={filter} />
+      <Countries countries={countries} filter={filter} onClick={handleButtonClick} />
     </div>
   );
 }
