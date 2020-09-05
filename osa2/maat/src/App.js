@@ -8,20 +8,40 @@ const Filter = ({value, onChange}) => (
   </div>
 )
 
-const OneCountry = ({country}) => (
-  <div>
-    <h2>{country.name}</h2>
-    <p>Capital: {country.capital}</p>
-    <p>Population: {country.population}</p>
-    <h3>Languages</h3>
-    <ul>
-      {country.languages.map(
-        lang => <li key={lang.name}>{lang.name}</li>
-      )}
-    </ul>
-    <img src={country.flag} alt="flag" width={100}/>
-  </div>
-)
+const OneCountry = ({country}) => {
+
+  const [ apiResponse, setApiResponse ] = useState({
+    current: {
+      temperature: '... loading from weatherstack ...'
+    }
+  })
+
+  useEffect(() => {
+    const params = {
+      access_key: process.env.REACT_APP_WS_API_KEY,
+      query: country.capital
+    }
+    axios
+    .get('http://api.weatherstack.com/current', {params})
+    .then(response => setApiResponse(response.data))
+  }, [country])
+  
+  return (
+    <div>
+      <h2>{country.name}</h2>
+      <p>Capital: {country.capital}</p>
+      <p>Population: {country.population}</p>
+      <h3>Languages</h3>
+      <ul>
+        {country.languages.map(
+          lang => <li key={lang.name}>{lang.name}</li>
+        )}
+      </ul>
+     <img src={country.flag} alt="flag" width={100}/>
+        <p>Temperature: {apiResponse.current.temperature}</p>
+    </div>
+  )
+}
 
 const Countries = ({countries, filter, onClick}) => {
   
