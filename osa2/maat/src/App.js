@@ -12,7 +12,10 @@ const OneCountry = ({country}) => {
 
   const [ apiResponse, setApiResponse ] = useState({
     current: {
-      temperature: '... loading from weatherstack ...'
+      temperature: '',
+      weather_icons: ['./nothing'],
+      wind_speed: '',
+      wind_dir: ''
     }
   })
 
@@ -37,8 +40,13 @@ const OneCountry = ({country}) => {
           lang => <li key={lang.name}>{lang.name}</li>
         )}
       </ul>
-     <img src={country.flag} alt="flag" width={100}/>
-        <p>Temperature: {apiResponse.current.temperature}</p>
+      <img src={country.flag} alt="flag" width={100}/>
+      <h3>Weather in {country.capital}</h3>
+      <p>Temperature: {apiResponse.current.temperature} Celsius</p>
+      {apiResponse.current.weather_icons.map(
+        icon_url => <img src={icon_url} alt="weather icon" width={50} key={icon_url} />
+      )}
+      <p>Wind: {apiResponse.current.wind_speed} mph, direction: {apiResponse.current.wind_dir}</p>
     </div>
   )
 }
