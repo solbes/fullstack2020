@@ -29,7 +29,29 @@ const Persons = ({persons, filter, deleteName}) => (
         <button id={p.name} onClick={deleteName}>Delete</button>
       </p>
     )
-) 
+)
+
+const Notification = ({ message, style }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div style={style}>
+      {message}
+    </div>
+  )
+}
+
+const messageStyle = {
+  fontSize: 16,
+  background: 'lightgrey',
+  borderStyle: 'solid',
+  borderRadius: 5,
+  padding: 10,
+  marginTop: 10,
+  marginBottom: 10
+}
 
 const App = () => {
   const [ persons, setPersons] = useState([
@@ -41,6 +63,8 @@ const App = () => {
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
   const [ newFilt, setNewFilt ] = useState('')
+  const [ addMessage, setAddMessage] = useState(null)
+  const [ delFailMessage, setDelFailMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -66,6 +90,15 @@ const App = () => {
             .then(returnedPerson => {
               setPersons(persons.map(person => person.id !== id ? person : returnedPerson))
             })
+            .catch(error => {
+              setDelFailMessage(
+                `${addedName.name} was already removed from server`
+              )
+              setTimeout(() => {
+                setDelFailMessage(null)
+              }, 5000)
+              setPersons(persons.filter(p => p.id !== id))
+            })
         }
     } else {
       personService
@@ -74,6 +107,8 @@ const App = () => {
           setPersons(persons.concat(addedPerson))
           setNewName('')
           setNewNumber('')
+          setAddMessage(`Added ${addedPerson.name} to database`)
+          setTimeout(() => setAddMessage(null), 5000)
         })
     }
   }
@@ -99,7 +134,13 @@ const App = () => {
                   handleNameChange={handleNameChange}
                   newNumber={newNumber}
                   handleNumberChange={handleNumberChange} />
+      <Notification 
+                  message={addMessage} 
+                  style={{...messageStyle, color: 'green'}} />
       <h2>Numbers</h2>
+      <Notification 
+                  message={delFailMessage} 
+                  style={{...messageStyle, color: 'red'}} />
       <Persons persons={persons} filter={newFilt} deleteName={deleteName} />
     </div>
   )
