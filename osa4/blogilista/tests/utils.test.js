@@ -59,3 +59,33 @@ describe('favorite blog', () => {
     expect(result).toBe(undefined)
   })
 })
+
+describe('most blogs', () => {
+  test('one blog', () => {
+    const result = listHelpers.mostBlogs([blog1])
+    expect(result).toEqual({author: blog1.author, blogs: 1})
+  })
+  test('many blogs', () => {
+    const result = listHelpers.mostBlogs([blog1, blog2, blog2])
+    expect(result).toEqual({author: blog2.author, blogs: 2})
+  })
+  test('no blogs', () => {
+    const result = listHelpers.mostBlogs([])
+    expect(result).toEqual({author: undefined, blogs: undefined})
+  })
+})
+
+describe('most likes', () => {
+  test('one blog', () => {
+    const result = listHelpers.mostLikes([blog1])
+    expect(result).toEqual({author: blog1.author, likes: blog1.likes})
+  })
+  test('many blogs', () => {
+    const result = listHelpers.mostLikes([blog1, blog2, blog2, blog2])
+    expect(result).toEqual({author: blog2.author, likes: 3*blog2.likes})
+  })
+  test('no blogs', () => {
+    const result = listHelpers.mostLikes([])
+    expect(result).toEqual({author: undefined, likes: undefined})
+  })
+})
