@@ -33,6 +33,50 @@ test('correct number of blogs returned as json', async () => {
   expect(response.body).toHaveLength(initialBlogs.length)
 })
 
+test('returned blogs contain id', async () =>{
+  const response = await api.get('/api/blogs')
+  response.body.forEach(
+    blog => expect(blog.id).toBeDefined()
+  )
+})
+
+test('adding a new blog works', async () => {
+  const newBlog = {
+    title: 'title3',
+    author: 'author3',
+    url: 'url3',
+    likes: 3
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const response = await api.get('/api/blogs')
+  expect(response.body).toHaveLength(initialBlogs.length+1)
+  expect(response.body.map(blog => {
+    delete blog.id
+    return blog
+  })).toContainEqual(newBlog)
+})
+
+test('adding a new blog without likes works', async () => {
+  const newBlog = {
+    title: 'title3',
+    author: 'author3',
+    url: 'url3'
+  }
+
+  await api.post('/api/blogs').send(newBlog)
+
+  const response = await api.get('/api/blogs')
+  addedBlog = response.body.find(b => b.title === 'title3')
+
+  expect(addedBlog.likes).toBe(0)
+})
+
 afterAll(() => {
   mongoose.connection.close()
 })
