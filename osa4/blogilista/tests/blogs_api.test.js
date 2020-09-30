@@ -19,6 +19,13 @@ const initialBlogs = [
   },
 ]
 
+const newBlog = {
+  title: 'title3',
+  author: 'author3',
+  url: 'url3',
+  likes: 3
+}
+
 beforeEach(async () => {
   await Blog.deleteMany({})
   const blogObjects = initialBlogs.map(blog => new Blog(blog))
@@ -41,12 +48,6 @@ test('returned blogs contain id', async () =>{
 })
 
 test('adding a new blog works', async () => {
-  const newBlog = {
-    title: 'title3',
-    author: 'author3',
-    url: 'url3',
-    likes: 3
-  }
 
   await api
     .post('/api/blogs')
@@ -63,18 +64,28 @@ test('adding a new blog works', async () => {
 })
 
 test('adding a new blog without likes works', async () => {
-  const newBlog = {
-    title: 'title3',
-    author: 'author3',
-    url: 'url3'
-  }
 
-  await api.post('/api/blogs').send(newBlog)
+  const noLikes = newBlog
+  delete newBlog.likes
+
+  await api.post('/api/blogs').send(noLikes)
 
   const response = await api.get('/api/blogs')
   addedBlog = response.body.find(b => b.title === 'title3')
 
   expect(addedBlog.likes).toBe(0)
+})
+
+test('adding a blog with missing title/url', async () =>{
+
+  const noTitle = newBlog
+  delete noTitle.title
+  const noUrl = newBlog
+  delete noUrl.url
+
+  await api.post('/api/blogs').send(noTitle).expect(400)
+  await api.post('/api/blogs').send(noUrl).expect(400)
+
 })
 
 afterAll(() => {
