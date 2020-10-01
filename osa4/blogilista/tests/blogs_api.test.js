@@ -76,7 +76,7 @@ test('adding a new blog without likes works', async () => {
   expect(addedBlog.likes).toBe(0)
 })
 
-test('adding a blog with missing title/url', async () =>{
+test('adding a blog with missing title/url', async () => {
 
   const noTitle = newBlog
   delete noTitle.title
@@ -86,6 +86,24 @@ test('adding a blog with missing title/url', async () =>{
   await api.post('/api/blogs').send(noTitle).expect(400)
   await api.post('/api/blogs').send(noUrl).expect(400)
 
+})
+
+test('delete a blog', async () => {
+  const response = await api.get('/api/blogs')
+  firstBlog = response.body[0]
+  await api.delete(`/api/blogs/${firstBlog.id}`).expect(204)
+  const response2 = await api.get('/api/blogs')
+  expect(response2.body).toHaveLength(initialBlogs.length-1)
+})
+
+test('update a blog', async () => {
+  const response = await api.get('/api/blogs')
+  firstBlog = response.body[0]
+  modifiedBlog = {...firstBlog, author: 'author_mod'}
+  const putResponse = await api.put(`/api/blogs/${firstBlog.id}`).send(modifiedBlog)
+  const response2 = await api.get('/api/blogs')
+  expect(response2.body.find(b => b.id === firstBlog.id)).toMatchObject(modifiedBlog)
+  expect(putResponse.body).toMatchObject(modifiedBlog)
 })
 
 afterAll(() => {
