@@ -62,7 +62,7 @@ test('adding a user with existing username fails', async () => {
 
   const resp = await api.post('/api/users').send(newUser)
   expect(resp.status).toBe(400)
-  expect(resp.body.error).toContain('expected `username` to be unique')
+  expect(resp.body.error).toContain('duplicate key error')
 })
 
 test('adding a user with too short username/passwd', async () => {
