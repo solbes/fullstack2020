@@ -1,8 +1,16 @@
 const mongoose = require('mongoose')
 const supertest = require('supertest')
+const bcrypt = require('bcrypt')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
+const User = require('../models/user')
+
+const newuser = {
+  username: 'author',
+  name: 'authorname',
+  password: 'pass1'
+}
 
 const initialBlogs = [
   {
@@ -21,7 +29,7 @@ const initialBlogs = [
 
 const newBlog = {
   title: 'title3',
-  author: 'author3',
+  author: 'author',
   url: 'url3',
   likes: 3
 }
@@ -49,9 +57,13 @@ test('returned blogs contain id', async () =>{
 
 test('adding a new blog works', async () => {
 
+  await api.post('/api/users').send(newuser)
+  const res = await api.post('/api/login').send(newuser)
+  const auth = 'bearer '.concat(res.body.token)
+
   await api
     .post('/api/blogs')
-    .set('Authorization', 'bearer 111111111111')
+    .set('Authorization', auth)
     .send(newBlog)
     .expect(201)
     .expect('Content-Type', /application\/json/)
@@ -60,6 +72,7 @@ test('adding a new blog works', async () => {
   expect(response.body).toHaveLength(initialBlogs.length+1)
   expect(response.body.map(blog => {
     delete blog.id
+    delete blog.user
     return blog
   })).toContainEqual(newBlog)
 })
@@ -69,7 +82,13 @@ test('adding a new blog without likes works', async () => {
   const noLikes = newBlog
   delete newBlog.likes
 
-  await api.post('/api/blogs').send(noLikes)
+  const res = await api.post('/api/login').send(newuser)
+  const auth = 'bearer '.concat(res.body.token)
+
+  await api
+    .post('/api/blogs')
+    .set('Authorization', auth)
+    .send(noLikes)
 
   const response = await api.get('/api/blogs')
   addedBlog = response.body.find(b => b.title === 'title3')
@@ -84,17 +103,42 @@ test('adding a blog with missing title/url', async () => {
   const noUrl = newBlog
   delete noUrl.url
 
-  await api.post('/api/blogs').send(noTitle).expect(400)
-  await api.post('/api/blogs').send(noUrl).expect(400)
+  const res = await api.post('/api/login').send(newuser)
+  const auth = 'bearer '.concat(res.body.token)
+
+  await api.post('/api/blogs')
+    .set('Authorization', auth)
+    .send(noTitle)
+    .expect(400)
+  await api.post('/api/blogs')
+    .set('Authorization', auth)
+    .send(noUrl)
+    .expect(400)
 
 })
 
 test('delete a blog', async () => {
-  const response = await api.get('/api/blogs')
-  firstBlog = response.body[0]
-  await api.delete(`/api/blogs/${firstBlog.id}`).expect(204)
+  const res = await api.post('/api/login').send(newuser)
+  const auth = 'bearer '.concat(res.body.token)
+
+  const addResponse = await api
+    .post('/api/blogs')
+    .set('Authorization', auth)
+    .send({
+      title: 'title',
+      author: 'author',
+      url: 'url'
+    })
+
+  addedBlog = addResponse.body
+
+  await api
+    .delete(`/api/blogs/${addedBlog.id}`)
+    .set('Authorization', auth)
+    .expect(204)
+  
   const response2 = await api.get('/api/blogs')
-  expect(response2.body).toHaveLength(initialBlogs.length-1)
+  expect(response2.body).toHaveLength(initialBlogs.length)
 })
 
 test('update a blog', async () => {
@@ -107,6 +151,7 @@ test('update a blog', async () => {
   expect(putResponse.body).toMatchObject(modifiedBlog)
 })
 
-afterAll(() => {
+afterAll(async () => {
+  await User.deleteMany({})
   mongoose.connection.close()
 })
