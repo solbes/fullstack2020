@@ -27,6 +27,45 @@ const LoginForm = (props) => (
   </form>
 )
 
+const BlogForm = (props) => (
+  <form onSubmit={props.onSubmit} >
+    <div>
+      title: <input value={props.title} onChange={props.handleTitleChange} />
+    </div>
+    <div>
+      author: <input value={props.author} onChange={props.handleAuthorChange} />
+    </div>
+    <div>
+      url: <input value={props.url} onChange={props.handleUrlChange} />
+    </div>
+    <div>
+      <button type="submit">create</button>
+    </div>
+  </form>
+)
+
+const Notification = ({ message, style }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div style={style}>
+      {message}
+    </div>
+  )
+}
+
+const messageStyle = {
+  fontSize: 16,
+  background: 'lightgrey',
+  borderStyle: 'solid',
+  borderRadius: 5,
+  padding: 10,
+  marginTop: 10,
+  marginBottom: 10
+}
+
 const App = () => {
   const [blogs, setBlogs] = useState([])
   
@@ -34,8 +73,19 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [url, setUrl] = useState('')
+
+  const [ addMessage, setAddMessage] = useState(null)
+  const [ addFailMessage, setAddFailMessage] = useState(null)
+  const [ loginFailMessage, setLoginFailMessage] = useState(null)
+
   const handleNameChange = ({ target }) => setUsername(target.value)
   const handlePasswordChange = ({ target }) => setPassword(target.value)
+  const handleTitleChange = ({ target }) => setTitle(target.value)
+  const handleAuthorChange = ({ target }) => setAuthor(target.value)
+  const handleUrlChange = ({ target }) => setUrl(target.value)
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -49,13 +99,31 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      console.log("Login failed")
+      setLoginFailMessage("Wrong username or password")
+      setTimeout(() => setLoginFailMessage(null), 5000)
     }
   }
 
   const handleLogout = (event) => {
     window.localStorage.removeItem('loggedUser')
     setUser(null)
+  }
+
+  const handleCreate = async (event) => {
+    event.preventDefault()
+    const newBlog = {title, author, url}
+    try {
+      const response = await blogService.create(newBlog, user.token)
+      setBlogs(blogs.concat(response.data))
+      setAuthor('')
+      setTitle('')
+      setUrl('')
+      setAddMessage(`A new blog ${response.data.title} by ${response.data.author} added`)
+      setTimeout(() => setAddMessage(null), 5000)
+    } catch (exception) {
+      setAddFailMessage(`Adding failed: ${exception.message}`)
+      setTimeout(() => setAddFailMessage(null), 5000)
+    }
   }
 
   useEffect(() => {
@@ -82,9 +150,14 @@ const App = () => {
                     handleNameChange={handleNameChange} 
                     password={password} 
                     handlePasswordChange={handlePasswordChange} />
+        <Notification 
+                  message={loginFailMessage} 
+                  style={{...messageStyle, color: 'red'}} />
       </div>
     )
   }
+
+  //console.log(blogs)
 
   return (
     <div>
@@ -92,6 +165,19 @@ const App = () => {
       <p>{`${user.username} logged in`}
       <button onClick={handleLogout}>logout</button>
       </p>
+      <BlogForm onSubmit={handleCreate}
+                title={title} 
+                author={author} 
+                url={url} 
+                handleTitleChange={handleTitleChange} 
+                handleAuthorChange={handleAuthorChange} 
+                handleUrlChange={handleUrlChange}/>
+      <Notification 
+                  message={addMessage} 
+                  style={{...messageStyle, color: 'green'}} />
+      <Notification 
+                  message={addFailMessage} 
+                  style={{...messageStyle, color: 'red'}} />
       {blogs.map(blog =>
         <Blog key={blog.id} blog={blog} />
       )}
