@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useImperativeHandle } from 'react'
 import Blog from './components/Blog'
+import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login' 
 
@@ -27,23 +28,6 @@ const LoginForm = (props) => (
   </form>
 )
 
-const BlogForm = (props) => (
-  <form onSubmit={props.onSubmit} >
-    <div>
-      title: <input value={props.title} onChange={props.handleTitleChange} />
-    </div>
-    <div>
-      author: <input value={props.author} onChange={props.handleAuthorChange} />
-    </div>
-    <div>
-      url: <input value={props.url} onChange={props.handleUrlChange} />
-    </div>
-    <div>
-      <button type="submit">create</button>
-    </div>
-  </form>
-)
-
 const Notification = ({ message, style }) => {
   if (message === null) {
     return null
@@ -66,6 +50,35 @@ const messageStyle = {
   marginBottom: 10
 }
 
+const Togglable = React.forwardRef((props, ref) => {
+  const [visible, setVisible] = useState(false)
+
+  const hideWhenVisible = { display: visible ? 'none' : '' }
+  const showWhenVisible = { display: visible ? '' : 'none' }
+
+  const toggleVisibility = () => {
+    setVisible(!visible)
+  }
+
+  useImperativeHandle(ref, () => {
+    return {
+      toggleVisibility
+    }
+  })
+
+  return (
+    <div>
+      <div style={hideWhenVisible}>
+        <button onClick={toggleVisibility}>{props.buttonLabel}</button>
+      </div>
+      <div style={showWhenVisible}>
+        {props.children}
+        <button onClick={toggleVisibility}>cancel</button>
+      </div>
+    </div>
+  )
+})
+
 const App = () => {
   const [blogs, setBlogs] = useState([])
   
@@ -73,19 +86,14 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
-
   const [ addMessage, setAddMessage] = useState(null)
   const [ addFailMessage, setAddFailMessage] = useState(null)
   const [ loginFailMessage, setLoginFailMessage] = useState(null)
 
   const handleNameChange = ({ target }) => setUsername(target.value)
   const handlePasswordChange = ({ target }) => setPassword(target.value)
-  const handleTitleChange = ({ target }) => setTitle(target.value)
-  const handleAuthorChange = ({ target }) => setAuthor(target.value)
-  const handleUrlChange = ({ target }) => setUrl(target.value)
+
+  const blogFormRef = useRef()
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -109,15 +117,11 @@ const App = () => {
     setUser(null)
   }
 
-  const handleCreate = async (event) => {
-    event.preventDefault()
-    const newBlog = {title, author, url}
+  const addBlog = async (blogObject) => {
     try {
-      const response = await blogService.create(newBlog, user.token)
+      blogFormRef.current.toggleVisibility()
+      const response = await blogService.create(blogObject, user.token)
       setBlogs(blogs.concat(response.data))
-      setAuthor('')
-      setTitle('')
-      setUrl('')
       setAddMessage(`A new blog ${response.data.title} by ${response.data.author} added`)
       setTimeout(() => setAddMessage(null), 5000)
     } catch (exception) {
@@ -157,21 +161,15 @@ const App = () => {
     )
   }
 
-  //console.log(blogs)
-
   return (
     <div>
       <h2>blogs</h2>
       <p>{`${user.username} logged in`}
       <button onClick={handleLogout}>logout</button>
       </p>
-      <BlogForm onSubmit={handleCreate}
-                title={title} 
-                author={author} 
-                url={url} 
-                handleTitleChange={handleTitleChange} 
-                handleAuthorChange={handleAuthorChange} 
-                handleUrlChange={handleUrlChange}/>
+      <Togglable buttonLabel="new blog" ref={blogFormRef}>
+        <BlogForm createBlog={addBlog}/>
+      </Togglable>
       <Notification 
                   message={addMessage} 
                   style={{...messageStyle, color: 'green'}} />
