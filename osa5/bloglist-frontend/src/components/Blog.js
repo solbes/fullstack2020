@@ -19,7 +19,6 @@ const Blog = ({ blog, user }) => {
   }
 
   const handleLike = (event) => {
-    
     const putBlog = {
       user: blog.user.id,
       likes: likes + 1,
@@ -30,7 +29,13 @@ const Blog = ({ blog, user }) => {
 
     setLikes(likes+1)
     blogService.replace(blog.id, putBlog, user.token)
+  }
 
+  const handleRemove = (event) => {
+    window.confirm(`Remove ${blog.title} by ${blog.user}?`)
+    // this needs to be handled in App-level to get immediate response
+    // in order to acces the "blogs" state
+    blogService.remove(blog.id, user.token)
   }
 
   if (!showDetails) {
@@ -46,6 +51,7 @@ const Blog = ({ blog, user }) => {
         <div>{blog.url}</div>
         <div>likes: {likes} <button onClick={handleLike}>like</button></div>
         <div>{user.username}</div>
+        <div><button onClick={handleRemove}>remove</button></div>
         <div><button onClick={handleVisibility}>hide</button></div>
       </div>
     )
