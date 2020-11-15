@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import blogService from '../services/blogs'
 
 const Blog = ({ blog, user }) => {
 
@@ -18,10 +19,18 @@ const Blog = ({ blog, user }) => {
   }
 
   const handleLike = (event) => {
-    console.log('pressed')
-    console.log(blog)
-    console.log(user)
+    
+    const putBlog = {
+      user: blog.user.id,
+      likes: likes + 1,
+      author: blog.author,
+      title: blog.title,
+      url: blog.url
+    }
+
     setLikes(likes+1)
+    blogService.replace(blog.id, putBlog, user.token)
+
   }
 
   if (!showDetails) {
