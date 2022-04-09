@@ -19,7 +19,7 @@ const replace = async (id, newObject, token) => {
   const config = {
     headers: { Authorization: `bearer ${token}` }
   }
-  
+
   const response = await axios.put(`${baseUrl}/${id}`, newObject, config)
   return response
 }

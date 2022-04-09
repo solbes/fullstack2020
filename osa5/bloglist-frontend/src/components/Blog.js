@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import blogService from '../services/blogs'
+import PropTypes from 'prop-types'
 
-const Blog = ({ blog, user }) => {
+const Blog = ({ blog, user ,handleRemove }) => {
 
   const blogStyle = {
     paddingTop: 10,
@@ -18,7 +19,7 @@ const Blog = ({ blog, user }) => {
     setShowDetails(!showDetails)
   }
 
-  const handleLike = (event) => {
+  const handleLike = () => {
     const putBlog = {
       user: blog.user.id,
       likes: likes + 1,
@@ -31,12 +32,7 @@ const Blog = ({ blog, user }) => {
     blogService.replace(blog.id, putBlog, user.token)
   }
 
-  const handleRemove = (event) => {
-    window.confirm(`Remove ${blog.title} by ${blog.user}?`)
-    // this needs to be handled in App-level to get immediate response
-    // in order to acces the "blogs" state
-    blogService.remove(blog.id, user.token)
-  }
+  const showRemoveButton = user.username === blog.user.username
 
   if (!showDetails) {
     return (
@@ -51,11 +47,17 @@ const Blog = ({ blog, user }) => {
         <div>{blog.url}</div>
         <div>likes: {likes} <button onClick={handleLike}>like</button></div>
         <div>{user.username}</div>
-        <div><button onClick={handleRemove}>remove</button></div>
+        {showRemoveButton ? <div><button onClick={handleRemove}>remove</button></div> : null}
         <div><button onClick={handleVisibility}>hide</button></div>
       </div>
     )
   }
+}
+
+Blog.propTypes = {
+  blog: PropTypes.object.isRequired,
+  user: PropTypes.object.isRequired,
+  handleRemove: PropTypes.func.isRequired
 }
 
 export default Blog

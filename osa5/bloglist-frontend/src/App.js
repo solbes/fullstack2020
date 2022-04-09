@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useImperativeHandle } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import Togglable from './components/Togglable'
 import blogService from './services/blogs'
-import loginService from './services/login' 
+import loginService from './services/login'
 
 const LoginForm = (props) => (
   <form onSubmit={props.handleLogin}>
@@ -53,7 +53,7 @@ const messageStyle = {
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  
+
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
@@ -71,7 +71,7 @@ const App = () => {
     event.preventDefault()
 
     try {
-      const user = await loginService.login({username, password})
+      const user = await loginService.login({ username, password })
       window.localStorage.setItem(
         'loggedUser', JSON.stringify(user)
       )
@@ -79,12 +79,12 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      setLoginFailMessage("Wrong username or password")
+      setLoginFailMessage('Wrong username or password')
       setTimeout(() => setLoginFailMessage(null), 5000)
     }
   }
 
-  const handleLogout = (event) => {
+  const handleLogout = () => {
     window.localStorage.removeItem('loggedUser')
     setUser(null)
   }
@@ -105,7 +105,7 @@ const App = () => {
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
-    )  
+    )
   }, [])
 
   useEffect(() => {
@@ -116,18 +116,24 @@ const App = () => {
     }
   }, [])
 
+  const removeBlog = (blog, user) => {
+    window.confirm(`Remove ${blog.title} by ${blog.user.name}?`)
+    blogService.remove(blog.id, user.token)
+    setBlogs(blogs.filter(b => b.id !== blog.id))
+  }
+
   if (user === null) {
     return (
       <div>
         <h2>Login</h2>
-        <LoginForm  handleLogin={handleLogin} 
-                    username={username} 
-                    handleNameChange={handleNameChange} 
-                    password={password} 
-                    handlePasswordChange={handlePasswordChange} />
-        <Notification 
-                  message={loginFailMessage} 
-                  style={{...messageStyle, color: 'red'}} />
+        <LoginForm  handleLogin={handleLogin}
+          username={username}
+          handleNameChange={handleNameChange}
+          password={password}
+          handlePasswordChange={handlePasswordChange} />
+        <Notification
+          message={loginFailMessage}
+          style={{ ...messageStyle, color: 'red' }} />
       </div>
     )
   }
@@ -136,19 +142,19 @@ const App = () => {
     <div>
       <h2>blogs</h2>
       <p>{`${user.username} logged in`}
-      <button onClick={handleLogout}>logout</button>
+        <button onClick={handleLogout}>logout</button>
       </p>
       <Togglable buttonLabel="new blog" ref={blogFormRef}>
         <BlogForm createBlog={addBlog}/>
       </Togglable>
-      <Notification 
-                  message={addMessage} 
-                  style={{...messageStyle, color: 'green'}} />
-      <Notification 
-                  message={addFailMessage} 
-                  style={{...messageStyle, color: 'red'}} />
+      <Notification
+        message={addMessage}
+        style={{ ...messageStyle, color: 'green' }} />
+      <Notification
+        message={addFailMessage}
+        style={{ ...messageStyle, color: 'red' }} />
       {blogs.sort((a,b) => b.likes-a.likes).map(blog =>
-        <Blog key={blog.id} blog={blog} user={user} />
+        <Blog key={blog.id} blog={blog} user={user} handleRemove={() => removeBlog(blog,user)} />
       )}
     </div>
   )
