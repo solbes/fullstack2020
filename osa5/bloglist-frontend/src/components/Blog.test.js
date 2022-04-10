@@ -28,12 +28,9 @@ test('renders title and author only', () => {
 
   render(<Blog blog={blog} user={user} handleRemove={mockHandleRemove} />)
 
-  const element = screen.getByText('test title test author')
-
-  expect(element).toHaveTextContent(blog.title)
-  expect(element).toHaveTextContent(blog.author)
-  expect(element).not.toHaveTextContent(blog.url)
-  expect(element).not.toHaveTextContent(blog.likes)
+  expect(screen.getByText('test title test author')).toBeDefined()
+  expect(screen.queryByText('test url')).toBeNull()
+  expect(screen.queryByText('likes: 0')).toBeNull()
 })
 
 test('renders all if show clicked', () => {
@@ -45,6 +42,7 @@ test('renders all if show clicked', () => {
   const button = screen.getByText('show')
   userEvent.click(button)
 
+  expect(screen.getByText('test title test author')).toBeDefined()
   expect(screen.getByText('test url')).toBeDefined()
   expect(screen.getByText('likes: 0')).toBeDefined()
 
