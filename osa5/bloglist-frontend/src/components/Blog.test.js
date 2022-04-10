@@ -45,6 +45,4 @@ test('renders all if show clicked', () => {
   expect(screen.getByText('test title test author')).toBeDefined()
   expect(screen.getByText('test url')).toBeDefined()
   expect(screen.getByText('likes: 0')).toBeDefined()
-
-  screen.debug(screen.getByText('test title test author'))
 })
